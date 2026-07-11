@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Inter',sans-serif;
+}
+
+body{
+    background:#040404;
+    color:white;
+    overflow-x:hidden;
+}
+
+body::before{
+    content:'';
+    position:fixed;
+    width:800px;
+    height:800px;
+    background:radial-gradient(#64ff4f22,#00000000);
+    right:-200px;
+    top:-150px;
+    border-radius:50%;
+    z-index:-1;
+}
+
+nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:30px 10%;
+}
+
+.logo{
+    color:#7CFF52;
+    font-size:32px;
+    font-weight:800;
+}
+
+.hero{
+    min-height:85vh;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 10%;
+}
+
+.left{
+    width:50%;
+}
+
+.badge{
+    display:inline-block;
+    background:#102010;
+    border:1px solid #7CFF52;
+    padding:10px 20px;
+    border-radius:30px;
+    color:#7CFF52;
+}
+
+h1{
+    margin-top:25px;
+    font-size:72px;
+    line-height:1.05;
+}
+
+.green{
+    color:#7CFF52;
+}
+
+.subtitle{
+    margin-top:25px;
+    color:#b5b5b5;
+    font-size:22px;
+    max-width:650px;
+}
+
+.search{
+    margin-top:40px;
+    display:flex;
+    gap:15px;
+}
+
+input{
+    flex:1;
+    padding:20px;
+    border-radius:15px;
+    border:1px solid #222;
+    background:#0f0f0f;
+    color:white;
+    font-size:18px;
+}
+
+button{
+    padding:20px 40px;
+    border:none;
+    border-radius:15px;
+    background:#7CFF52;
+    color:black;
+    font-weight:700;
+    cursor:pointer;
+    transition:.3s;
+}
+
+button:hover{
+    transform:translateY(-4px);
+    box-shadow:0 0 30px #7CFF52;
+}
+
+#resultado{
+    margin-top:30px;
+    font-size:24px;
+}
+
+.right{
+    width:40%;
+    display:flex;
+    justify-content:center;
+}
+
+.globe{
+    width:500px;
+    height:500px;
+    border-radius:50%;
+    background:
+      radial-gradient(circle,#7CFF52,#0b1d0b,#000);
+    box-shadow:
+      0 0 50px #7CFF52,
+      0 0 150px #7CFF52;
+    animation:spin 20s linear infinite;
+}
+
+@keyframes spin{
+    from{
+        transform:rotate(0deg);
+    }
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+.stats{
+    display:flex;
+    justify-content:center;
+    gap:50px;
+    margin-bottom:80px;
+}
+
+.stat{
+    text-align:center;
+}
+
+.number{
+    color:#7CFF52;
+    font-size:42px;
+    font-weight:800;
+}
+
+.label{
+    color:#aaa;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<nav>
+    <div class="logo">Password Guardian</div>
+</nav>
+
+<section class="hero">
+
+<div class="left">
+
+<div class="badge">
+🔒 Powered by HIBP API
+</div>
+
+<h1>
+Verifique se sua senha<br>
+já foi exposta em<br>
+<span class="green">vazamentos.</span>
+</h1>
+
+<p class="subtitle">
+Descubra em segundos se sua senha apareceu
+em bilhões de credenciais comprometidas.
+</p>
+
+<div class="search">
+<input
+type="password"
+id="senha"
+placeholder="Digite sua senha">
+
+<button onclick="verificar()">
+Verificar
+</button>
+</div>
+
+<div id="resultado"></div>
+
+</div>
+
+<div class="right">
+<div class="globe"></div>
+</div>
+
+</section>
+
+<section class="stats">
+
+<div class="stat">
+<div class="number">7B+</div>
+<div class="label">Senhas analisadas</div>
+</div>
+
+<div class="stat">
+<div class="number">100%</div>
+<div class="label">Privacidade</div>
+</div>
+
+<div class="stat">
+<div class="number"><1s</div>
+<div class="label">Tempo médio</div>
+</div>
+
+</section>
+
+<script>
+
+async function sha1(str){
+    const buffer = new TextEncoder().encode(str);
+
+    const hash = await crypto.subtle.digest(
+        'SHA-1',
+        buffer
+    );
+
+    return Array.from(new Uint8Array(hash))
+        .map(b => b.toString(16).padStart(2,'0'))
+        .join('')
+        .toUpperCase();
+}
+
+async function verificar(){
+
+    const senha = document.getElementById('senha').value;
+
+    const hash = await sha1(senha);
+
+    const prefixo = hash.substring(0,5);
+    const sufixo = hash.substring(5);
+
+    google.script.run
+        .withSuccessHandler(function(data){
+
+            const linhas = data.split('\n');
+
+            let encontrado = false;
+            let vezes = 0;
+
+            linhas.forEach(linha => {
+
+                const partes = linha.split(':');
+
+                if(partes[0].trim() === sufixo){
+                    encontrado = true;
+                    vezes = partes[1];
+                }
+
+            });
+
+            if(encontrado){
+                resultado.innerHTML =
+                `❌ Encontrada em <span class="green">${vezes}</span> vazamentos`;
+            }
+            else{
+                resultado.innerHTML =
+                `✅ Nenhum vazamento conhecido encontrado`;
+            }
+
+        })
+        .verificarSenha(prefixo);
+
+}
+
+</script>
+
+</body>
+</html>

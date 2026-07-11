@@ -1,0 +1,13 @@
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('index')
+    .setTitle('Password Guardian');
+}
+
+function verificarSenha(prefixo) {
+
+  const response = UrlFetchApp.fetch(
+    `https://api.pwnedpasswords.com/range/${prefixo}`
+  );
+
+  return response.getContentText();
+}
